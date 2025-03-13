@@ -5,17 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anonymous Chat Forum</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
     <style>
+        /* Global Styles */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
             margin: 0;
             padding: 20px;
             text-align: center;
+            transition: background-color 0.3s, color 0.3s;
         }
         select, textarea, input, button {
             margin: 10px;
@@ -25,6 +22,7 @@
             max-width: 500px;
             border-radius: 10px;
             border: 1px solid #ddd;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         textarea {
             resize: none;
@@ -53,12 +51,62 @@
             margin: 10px 0;
             border-radius: 10px;
             word-wrap: break-word;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        /* Theme Styles */
+        .light-mode {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .light-mode select, .light-mode textarea, .light-mode input {
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .light-mode .message {
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #f5f5f5;
+        }
+        .dark-mode select, .dark-mode textarea, .dark-mode input {
+            background-color: #333;
+            color: #f5f5f5;
+            border: 1px solid #555;
+        }
+        .dark-mode .message {
+            background-color: #333;
+            border: 1px solid #555;
+        }
+
+        .hacker-mode {
+            background-color: #0d0d0d;
+            color: #00ff00;
+        }
+        .hacker-mode select, .hacker-mode textarea, .hacker-mode input {
+            background-color: #1a1a1a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+        .hacker-mode .message {
+            background-color: #1a1a1a;
+            border: 1px solid #00ff00;
         }
     </style>
 </head>
-<body>
+<body class="light-mode">
 
     <h2>Anonymous Chat Forum</h2>
+    
+    <select id="themeSelector">
+        <option value="light-mode">Light Mode</option>
+        <option value="dark-mode">Dark Mode</option>
+        <option value="hacker-mode">Hacker Mode</option>
+    </select>
     
     <select id="chatRoom">
         <option value="general">General</option>
@@ -83,21 +131,7 @@
     <div id="messages"></div>
 
     <script>
-        // Firebase Configuration (Replace with your Firebase config)
-        const firebaseConfig = {
-            apiKey: "AIzaSyA_-jwjVy6FgrpEveXdGmp_IKMebKDo0ME",
-            authDomain: "webapp-f18d7.firebaseapp.com",
-            databaseURL: "https://webapp-f18d7-default-rtdb.firebaseio.com/",
-            projectId: "webapp-f18d7",
-            storageBucket: "webapp-f18d7.firebasestorage.app",
-            messagingSenderId: "17542691325",
-            appId: "1:17542691325:web:b6f4db2b4fe04ae0c98194",
-            measurementId: "G-YYSQJ7T56L"
-        };
-
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const backendUrl = "http://localhost:3000"; // Replace with your backend URL
 
         // Constants
         const chatRoom = document.getElementById("chatRoom");
@@ -105,14 +139,16 @@
         const encryptionMethod = document.getElementById("encryptionMethod");
         const passwordInput = document.getElementById("password");
         const messagesDiv = document.getElementById("messages");
+        const themeSelector = document.getElementById("themeSelector");
 
         // Event Listeners
         encryptionMethod.addEventListener("change", togglePasswordInput);
         chatRoom.addEventListener("change", displayMessages);
+        themeSelector.addEventListener("change", changeTheme);
         window.onload = displayMessages;
 
         // Functions
-        function sendMessage() {
+        async function sendMessage() {
             const message = messageInput.value.trim();
             const room = chatRoom.value;
             const method = encryptionMethod.value;
@@ -127,14 +163,15 @@
 
             if (encryptedMessage === null) return; // Stop if encryption fails
 
-            // Save message to Firebase
-            database.ref(`messages/${room}`).push({
-                text: encryptedMessage,
-                method: method,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+            // Save message to backend
+            await fetch(`${backendUrl}/messages`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ room, text: encryptedMessage, method }),
             });
 
             messageInput.value = ""; // Clear input
+            displayMessages();
         }
 
         function encryptMessage(message, method, password) {
@@ -154,30 +191,24 @@
             }
         }
 
-        function displayMessages() {
+        async function displayMessages() {
             const room = chatRoom.value;
+            const response = await fetch(`${backendUrl}/messages/${room}`);
+            const messages = await response.json();
+
             messagesDiv.innerHTML = "";
 
-            // Fetch messages from Firebase
-            database.ref(`messages/${room}`).on("value", (snapshot) => {
-                const messages = [];
-                snapshot.forEach((childSnapshot) => {
-                    messages.push({ id: childSnapshot.key, ...childSnapshot.val() });
-                });
-
-                // Display messages
-                messages.forEach((msg, index) => {
-                    const messageDiv = document.createElement("div");
-                    messageDiv.className = "message";
-                    messageDiv.innerHTML = `
-                        <p><b>Message ${index + 1}</b></p>
-                        <textarea readonly rows="2">${msg.text}</textarea>
-                        <br>
-                        <button onclick="decryptMessage('${msg.text}', '${msg.method}')">Decrypt</button>
-                        <input type="password" id="decryptPass${index}" placeholder="Password (AES only)">
-                    `;
-                    messagesDiv.appendChild(messageDiv);
-                });
+            messages.forEach((msg, index) => {
+                const messageDiv = document.createElement("div");
+                messageDiv.className = "message";
+                messageDiv.innerHTML = `
+                    <p><b>Message ${index + 1}</b></p>
+                    <textarea readonly rows="2">${msg.text}</textarea>
+                    <br>
+                    <button onclick="decryptMessage('${msg.text}', '${msg.method}')">Decrypt</button>
+                    <input type="password" id="decryptPass${index}" placeholder="Password (AES only)">
+                `;
+                messagesDiv.appendChild(messageDiv);
             });
         }
 
@@ -218,6 +249,11 @@
 
         function togglePasswordInput() {
             passwordInput.style.display = encryptionMethod.value === "aes" ? "block" : "none";
+        }
+
+        function changeTheme() {
+            const selectedTheme = themeSelector.value;
+            document.body.className = selectedTheme;
         }
     </script>
 
