@@ -109,6 +109,7 @@
         <option value="hacker-mode">Hacker Mode</option>
     </select>
     
+    <p>Your Peer ID: <span id="peerIdDisplay"></span></p>
     <input type="text" id="peerIdInput" placeholder="Enter Peer ID to connect"><br>
     <button onclick="connectToPeer()">Connect</button>
 
@@ -134,6 +135,7 @@
         let conn = null;
 
         // Constants
+        const peerIdDisplay = document.getElementById("peerIdDisplay");
         const peerIdInput = document.getElementById("peerIdInput");
         const messageInput = document.getElementById("messageInput");
         const encryptionMethod = document.getElementById("encryptionMethod");
@@ -263,7 +265,15 @@
 
         // PeerJS Event Listeners
         peer.on("open", (id) => {
-            alert(`Your Peer ID is: ${id}`);
+            // Display the Peer ID
+            peerIdDisplay.textContent = id;
+
+            // Copy the Peer ID to the clipboard
+            navigator.clipboard.writeText(id).then(() => {
+                alert("Your Peer ID has been copied to the clipboard!");
+            }).catch(() => {
+                alert("Failed to copy Peer ID to clipboard. Please copy it manually.");
+            });
         });
 
         peer.on("connection", (connection) => {
