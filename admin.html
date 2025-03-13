@@ -4,24 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
     <style>
-        /* Global Styles */
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            transition: background-color 0.3s, color 0.3s;
+            padding: 20px;
+            text-align: center;
         }
-
-        h2 {
-            margin-top: 20px;
-        }
-
         select, textarea, input, button {
             margin: 10px;
             padding: 10px;
@@ -29,151 +23,41 @@
             width: 80%;
             max-width: 500px;
             border-radius: 10px;
-            outline: none;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            border: 1px solid #ddd;
         }
-
         textarea {
             resize: none;
         }
-
         button {
+            background-color: #0078d7;
+            color: white;
+            border: none;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
-
+        button:hover {
+            background-color: #005bb5;
+        }
         #messages {
             margin-top: 20px;
             width: 80%;
             max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
             text-align: left;
         }
-
         .message {
-            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
             margin: 10px 0;
             border-radius: 10px;
             word-wrap: break-word;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
-
-        .message textarea {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .message button {
-            margin-top: 10px;
-            width: auto;
-        }
-
-        .message input[type="password"] {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        /* Theme Modes */
-        .light-mode {
-            background-color: #f5f5f5;
-            color: #333;
-        }
-
-        .light-mode select, .light-mode textarea, .light-mode input {
-            background-color: white;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-
-        .light-mode button {
-            background-color: #0078d7;
-            color: white;
-            border: none;
-        }
-
-        .light-mode button:hover {
-            background-color: #005bb5;
-        }
-
-        .light-mode .message {
-            background-color: white;
-            border: 1px solid #ddd;
-        }
-
-        .dark-mode {
-            background-color: #1a1a1a;
-            color: #f5f5f5;
-        }
-
-        .dark-mode select, .dark-mode textarea, .dark-mode input {
-            background-color: #333;
-            color: #f5f5f5;
-            border: 1px solid #555;
-        }
-
-        .dark-mode button {
-            background-color: #555;
-            color: #f5f5f5;
-            border: none;
-        }
-
-        .dark-mode button:hover {
-            background-color: #777;
-        }
-
-        .dark-mode .message {
-            background-color: #333;
-            border: 1px solid #555;
-        }
-
-        .hacker-mode {
-            background-color: #0d0d0d;
-            color: #00ff00;
-        }
-
-        .hacker-mode select, .hacker-mode textarea, .hacker-mode input {
-            background-color: #1a1a1a;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        .hacker-mode button {
-            background-color: #1a1a1a;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        .hacker-mode button:hover {
-            background-color: #00ff00;
-            color: #0d0d0d;
-        }
-
-        .hacker-mode .message {
-            background-color: #1a1a1a;
-            border: 1px solid #00ff00;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 600px) {
-            select, textarea, input, button {
-                width: 90%;
-            }
-
-            #messages {
-                width: 90%;
-            }
         }
     </style>
 </head>
-<body class="light-mode">
+<body>
 
     <h2>Admin Panel</h2>
-    
-    <select id="themeSelector">
-        <option value="light-mode">Light Mode</option>
-        <option value="dark-mode">Dark Mode</option>
-        <option value="hacker-mode">Hacker Mode</option>
-    </select>
     
     <input type="password" id="adminKey" placeholder="Enter Admin Password">
     <button onclick="loginAdmin()">Login</button>
@@ -189,17 +73,33 @@
     </div>
 
     <script>
+        // Firebase Configuration (Same as in index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_-jwjVy6FgrpEveXdGmp_IKMebKDo0ME",
+            authDomain: "webapp-f18d7.firebaseapp.com",
+            databaseURL: "https://webapp-f18d7-default-rtdb.firebaseio.com/",
+            projectId: "webapp-f18d7",
+            storageBucket: "webapp-f18d7.firebasestorage.app",
+            messagingSenderId: "17542691325",
+            appId: "1:17542691325:web:b6f4db2b4fe04ae0c98194",
+            measurementId: "G-YYSQJ7T56L"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // Constants
-        const ADMIN_PASSWORD = "pass1@1@1@";
         const adminKeyInput = document.getElementById("adminKey");
         const adminControls = document.getElementById("adminControls");
         const adminChatRoom = document.getElementById("adminChatRoom");
         const adminMessagesDiv = document.getElementById("adminMessages");
-        const themeSelector = document.getElementById("themeSelector");
+
+        // Admin Password
+        const ADMIN_PASSWORD = "pass1@1@1@";
 
         // Event Listeners
         adminChatRoom.addEventListener("change", displayAdminMessages);
-        themeSelector.addEventListener("change", changeTheme);
 
         // Functions
         function loginAdmin() {
@@ -215,50 +115,45 @@
 
         function displayAdminMessages() {
             const room = adminChatRoom.value;
-            const messages = JSON.parse(localStorage.getItem(room)) || [];
             adminMessagesDiv.innerHTML = "";
 
-            messages.forEach((msg, index) => {
-                const messageDiv = document.createElement("div");
-                messageDiv.className = "message";
-                messageDiv.innerHTML = `
-                    <p><b>Message ${index + 1}</b></p>
-                    <textarea id="editMessage${index}" rows="2">${msg.text}</textarea>
-                    <br>
-                    <button onclick="editMessage(${index})">Edit</button>
-                    <button onclick="deleteMessage(${index})">Delete</button>
-                `;
-                adminMessagesDiv.appendChild(messageDiv);
+            // Fetch messages from Firebase
+            database.ref(`messages/${room}`).on("value", (snapshot) => {
+                const messages = [];
+                snapshot.forEach((childSnapshot) => {
+                    messages.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                });
+
+                // Display messages
+                messages.forEach((msg, index) => {
+                    const messageDiv = document.createElement("div");
+                    messageDiv.className = "message";
+                    messageDiv.innerHTML = `
+                        <p><b>Message ${index + 1}</b></p>
+                        <textarea id="editMessage${index}" rows="2">${msg.text}</textarea>
+                        <br>
+                        <button onclick="editMessage('${room}', '${msg.id}', ${index})">Edit</button>
+                        <button onclick="deleteMessage('${room}', '${msg.id}')">Delete</button>
+                    `;
+                    adminMessagesDiv.appendChild(messageDiv);
+                });
             });
         }
 
-        function editMessage(index) {
-            const room = adminChatRoom.value;
-            const messages = JSON.parse(localStorage.getItem(room)) || [];
+        function editMessage(room, messageId, index) {
             const newText = document.getElementById(`editMessage${index}`).value.trim();
-
             if (!newText) {
                 alert("Message cannot be empty!");
                 return;
             }
 
-            messages[index].text = newText;
-            localStorage.setItem(room, JSON.stringify(messages));
-            displayAdminMessages();
+            // Update message in Firebase
+            database.ref(`messages/${room}/${messageId}`).update({ text: newText });
         }
 
-        function deleteMessage(index) {
-            const room = adminChatRoom.value;
-            const messages = JSON.parse(localStorage.getItem(room)) || [];
-
-            messages.splice(index, 1); // Remove the message
-            localStorage.setItem(room, JSON.stringify(messages));
-            displayAdminMessages();
-        }
-
-        function changeTheme() {
-            const selectedTheme = themeSelector.value;
-            document.body.className = selectedTheme;
+        function deleteMessage(room, messageId) {
+            // Delete message from Firebase
+            database.ref(`messages/${room}/${messageId}`).remove();
         }
     </script>
 
