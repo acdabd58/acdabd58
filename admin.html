@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anonymous Chat Forum</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <title>Admin Panel</title>
     <style>
         /* Global Styles */
         body {
@@ -168,7 +167,7 @@
 </head>
 <body class="light-mode">
 
-    <h2>Anonymous Chat Forum</h2>
+    <h2>Admin Panel</h2>
     
     <select id="themeSelector">
         <option value="light-mode">Light Mode</option>
@@ -176,147 +175,85 @@
         <option value="hacker-mode">Hacker Mode</option>
     </select>
     
-    <select id="chatRoom">
-        <option value="general">General</option>
-        <option value="tech">Tech</option>
-        <option value="fun">Fun</option>
-    </select>
-    
-    <textarea id="messageInput" placeholder="Type your message..." rows="3"></textarea><br>
-    
-    <select id="encryptionMethod">
-        <option value="none">No Encryption</option>
-        <option value="base64">Base64 Encode</option>
-        <option value="aes">AES Encrypt</option>
-        <option value="rot13">ROT13 Cipher</option>
-    </select><br>
+    <input type="password" id="adminKey" placeholder="Enter Admin Password">
+    <button onclick="loginAdmin()">Login</button>
 
-    <input type="password" id="password" placeholder="Enter password (AES only)" style="display:none;"><br>
-
-    <button onclick="sendMessage()">Send Message</button>
-
-    <h3>Chat Messages</h3>
-    <div id="messages"></div>
+    <div id="adminControls" style="display: none;">
+        <h3>Edit/Delete Messages</h3>
+        <select id="adminChatRoom">
+            <option value="general">General</option>
+            <option value="tech">Tech</option>
+            <option value="fun">Fun</option>
+        </select>
+        <div id="adminMessages"></div>
+    </div>
 
     <script>
         // Constants
-        const chatRoom = document.getElementById("chatRoom");
-        const messageInput = document.getElementById("messageInput");
-        const encryptionMethod = document.getElementById("encryptionMethod");
-        const passwordInput = document.getElementById("password");
-        const messagesDiv = document.getElementById("messages");
+        const ADMIN_PASSWORD = "pass1@1@1@";
+        const adminKeyInput = document.getElementById("adminKey");
+        const adminControls = document.getElementById("adminControls");
+        const adminChatRoom = document.getElementById("adminChatRoom");
+        const adminMessagesDiv = document.getElementById("adminMessages");
         const themeSelector = document.getElementById("themeSelector");
 
         // Event Listeners
-        encryptionMethod.addEventListener("change", togglePasswordInput);
-        chatRoom.addEventListener("change", displayMessages);
+        adminChatRoom.addEventListener("change", displayAdminMessages);
         themeSelector.addEventListener("change", changeTheme);
-        window.onload = displayMessages;
 
         // Functions
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            const room = chatRoom.value;
-            const method = encryptionMethod.value;
-            const password = passwordInput.value;
-
-            if (!message) {
-                alert("Message cannot be empty!");
-                return;
-            }
-
-            let encryptedMessage = encryptMessage(message, method, password);
-
-            if (encryptedMessage === null) return; // Stop if encryption fails
-
-            saveMessage(room, encryptedMessage, method);
-            displayMessages();
-            messageInput.value = ""; // Clear input
-        }
-
-        function encryptMessage(message, method, password) {
-            switch (method) {
-                case "base64":
-                    return btoa(message);
-                case "aes":
-                    if (!password) {
-                        alert("Enter a password for AES encryption!");
-                        return null;
-                    }
-                    return CryptoJS.AES.encrypt(message, password).toString();
-                case "rot13":
-                    return rot13(message);
-                default:
-                    return message; // No encryption
+        function loginAdmin() {
+            const enteredPassword = adminKeyInput.value.trim();
+            if (enteredPassword === ADMIN_PASSWORD) {
+                adminControls.style.display = "block";
+                adminKeyInput.value = ""; // Clear input
+                displayAdminMessages();
+            } else {
+                alert("Incorrect Admin Password!");
             }
         }
 
-        function saveMessage(room, message, method) {
+        function displayAdminMessages() {
+            const room = adminChatRoom.value;
             const messages = JSON.parse(localStorage.getItem(room)) || [];
-            messages.push({ text: message, method: method });
-            localStorage.setItem(room, JSON.stringify(messages));
-        }
-
-        function displayMessages() {
-            const room = chatRoom.value;
-            const messages = JSON.parse(localStorage.getItem(room)) || [];
-            messagesDiv.innerHTML = "";
+            adminMessagesDiv.innerHTML = "";
 
             messages.forEach((msg, index) => {
                 const messageDiv = document.createElement("div");
                 messageDiv.className = "message";
                 messageDiv.innerHTML = `
                     <p><b>Message ${index + 1}</b></p>
-                    <textarea readonly rows="2">${msg.text}</textarea>
+                    <textarea id="editMessage${index}" rows="2">${msg.text}</textarea>
                     <br>
-                    <button onclick="decryptMessage(${index})">Decrypt</button>
-                    <input type="password" id="decryptPass${index}" placeholder="Password (AES only)">
+                    <button onclick="editMessage(${index})">Edit</button>
+                    <button onclick="deleteMessage(${index})">Delete</button>
                 `;
-                messagesDiv.appendChild(messageDiv);
+                adminMessagesDiv.appendChild(messageDiv);
             });
         }
 
-        function decryptMessage(index) {
-            const room = chatRoom.value;
+        function editMessage(index) {
+            const room = adminChatRoom.value;
             const messages = JSON.parse(localStorage.getItem(room)) || [];
-            const msg = messages[index];
+            const newText = document.getElementById(`editMessage${index}`).value.trim();
 
-            let decryptedText;
-            switch (msg.method) {
-                case "base64":
-                    decryptedText = atob(msg.text);
-                    break;
-                case "aes":
-                    const password = document.getElementById(`decryptPass${index}`).value;
-                    if (!password) {
-                        alert("Enter a password to decrypt AES content!");
-                        return;
-                    }
-                    decryptedText = CryptoJS.AES.decrypt(msg.text, password).toString(CryptoJS.enc.Utf8);
-                    if (!decryptedText) {
-                        alert("Incorrect Password or Invalid Data!");
-                        return;
-                    }
-                    break;
-                case "rot13":
-                    decryptedText = rot13(msg.text);
-                    break;
-                default:
-                    decryptedText = msg.text; // Plain text
+            if (!newText) {
+                alert("Message cannot be empty!");
+                return;
             }
-            alert("Decrypted: " + decryptedText);
+
+            messages[index].text = newText;
+            localStorage.setItem(room, JSON.stringify(messages));
+            displayAdminMessages();
         }
 
-        function rot13(str) {
-            return str.replace(/[a-zA-Z]/g, function (c) {
-                return String.fromCharCode(
-                    c.charCodeAt(0) + (c.toLowerCase() < "n" ? 13 : -13)
-                );
-            });
-        }
+        function deleteMessage(index) {
+            const room = adminChatRoom.value;
+            const messages = JSON.parse(localStorage.getItem(room)) || [];
 
-        function togglePasswordInput() {
-            passwordInput.style.display = encryptionMethod.value === "aes" ? "block" : "none";
+            messages.splice(index, 1); // Remove the message
+            localStorage.setItem(room, JSON.stringify(messages));
+            displayAdminMessages();
         }
 
         function changeTheme() {
