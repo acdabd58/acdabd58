@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anonymous Chat Forum</title>
+    <title>P2P Chat Forum</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         /* Global Styles */
@@ -100,7 +101,7 @@
 </head>
 <body class="light-mode">
 
-    <h2>Anonymous Chat Forum</h2>
+    <h2>P2P Chat Forum</h2>
     
     <select id="themeSelector">
         <option value="light-mode">Light Mode</option>
@@ -108,12 +109,9 @@
         <option value="hacker-mode">Hacker Mode</option>
     </select>
     
-    <select id="chatRoom">
-        <option value="general">General</option>
-        <option value="tech">Tech</option>
-        <option value="fun">Fun</option>
-    </select>
-    
+    <input type="text" id="peerIdInput" placeholder="Enter Peer ID to connect"><br>
+    <button onclick="connectToPeer()">Connect</button>
+
     <textarea id="messageInput" placeholder="Type your message..." rows="3"></textarea><br>
     
     <select id="encryptionMethod">
@@ -131,10 +129,12 @@
     <div id="messages"></div>
 
     <script>
-        const backendUrl = "http://localhost:8080"; // Replace with your backend URL
+        // PeerJS Configuration
+        const peer = new Peer();
+        let conn = null;
 
         // Constants
-        const chatRoom = document.getElementById("chatRoom");
+        const peerIdInput = document.getElementById("peerIdInput");
         const messageInput = document.getElementById("messageInput");
         const encryptionMethod = document.getElementById("encryptionMethod");
         const passwordInput = document.getElementById("password");
@@ -143,14 +143,28 @@
 
         // Event Listeners
         encryptionMethod.addEventListener("change", togglePasswordInput);
-        chatRoom.addEventListener("change", displayMessages);
         themeSelector.addEventListener("change", changeTheme);
-        window.onload = displayMessages;
 
         // Functions
-        async function sendMessage() {
+        function connectToPeer() {
+            const peerId = peerIdInput.value.trim();
+            if (!peerId) {
+                alert("Enter a Peer ID to connect!");
+                return;
+            }
+
+            conn = peer.connect(peerId);
+            conn.on("open", () => {
+                alert("Connected to peer!");
+            });
+
+            conn.on("data", (data) => {
+                displayMessage(data);
+            });
+        }
+
+        function sendMessage() {
             const message = messageInput.value.trim();
-            const room = chatRoom.value;
             const method = encryptionMethod.value;
             const password = passwordInput.value;
 
@@ -163,15 +177,14 @@
 
             if (encryptedMessage === null) return; // Stop if encryption fails
 
-            // Save message to backend
-            await fetch(`${backendUrl}/messages`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ room, text: encryptedMessage, method }),
-            });
+            if (conn) {
+                conn.send({ text: encryptedMessage, method });
+                displayMessage({ text: encryptedMessage, method });
+            } else {
+                alert("Not connected to any peer!");
+            }
 
             messageInput.value = ""; // Clear input
-            displayMessages();
         }
 
         function encryptMessage(message, method, password) {
@@ -191,25 +204,17 @@
             }
         }
 
-        async function displayMessages() {
-            const room = chatRoom.value;
-            const response = await fetch(`${backendUrl}/messages/${room}`);
-            const messages = await response.json();
-
-            messagesDiv.innerHTML = "";
-
-            messages.forEach((msg, index) => {
-                const messageDiv = document.createElement("div");
-                messageDiv.className = "message";
-                messageDiv.innerHTML = `
-                    <p><b>Message ${index + 1}</b></p>
-                    <textarea readonly rows="2">${msg.text}</textarea>
-                    <br>
-                    <button onclick="decryptMessage('${msg.text}', '${msg.method}')">Decrypt</button>
-                    <input type="password" id="decryptPass${index}" placeholder="Password (AES only)">
-                `;
-                messagesDiv.appendChild(messageDiv);
-            });
+        function displayMessage(msg) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "message";
+            messageDiv.innerHTML = `
+                <p><b>Message</b></p>
+                <textarea readonly rows="2">${msg.text}</textarea>
+                <br>
+                <button onclick="decryptMessage('${msg.text}', '${msg.method}')">Decrypt</button>
+                <input type="password" id="decryptPass" placeholder="Password (AES only)">
+            `;
+            messagesDiv.appendChild(messageDiv);
         }
 
         function decryptMessage(text, method) {
@@ -255,6 +260,18 @@
             const selectedTheme = themeSelector.value;
             document.body.className = selectedTheme;
         }
+
+        // PeerJS Event Listeners
+        peer.on("open", (id) => {
+            alert(`Your Peer ID is: ${id}`);
+        });
+
+        peer.on("connection", (connection) => {
+            conn = connection;
+            conn.on("data", (data) => {
+                displayMessage(data);
+            });
+        });
     </script>
 
 </body>
