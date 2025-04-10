@@ -1,0 +1,13 @@
+{
+  "name": "iPhone Quiz App",
+  "short_name": "iQuiz",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#4e54c8",
+  "icons": [{
+    "src": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Emoji_u1f4f1.svg",
+    "sizes": "192x192",
+    "type": "image/png"
+  }]
+}

