@@ -350,59 +350,6 @@
 
     <!-- JavaScript Validation & Handling -->
   <script src="script.js"></script>
-    <scrip>
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const errorBanner = document.getElementById('errorBanner');
-        const errorText = document.getElementById('errorText');
-        const submitBtn = document.getElementById('submitBtn');
-
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
-
-            // Simple basic validation simulation
-            if (username === "" || password === "") {
-                showError("Please fill in both User ID and Password.");
-                return;
-            }
-
-            // Hide previous errors
-            errorBanner.style.display = 'none';
-
-            // Show loading animation on button
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner"></span> Authenticating...';
-            submitBtn.disabled = true;
-
-            // Simulate server network authentication delay
-            setTimeout(() => {
-                // For demonstration, let's treat any entry with length > 3 as a successful login simulation
-                if (username.length >= 3 && password.length >= 3) {
-                    // Success handling
-                    alert(`Welcome back, ${username}! Redirecting to Welkite University Student/Staff Portal dashboard...`);
-                    // window.location.href = "dashboard.html"; // Redirect to portal dashboard page here
-                } else {
-                    showError("Invalid credentials. Please check your Student ID/Username or Password.");
-                }
-                
-                // Restore button state
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-            }, 1200);
-        });
-
-        function showError(message) {
-            errorText.textContent = message;
-            errorBanner.style.display = 'flex';
-            // Shake effect simulation or smooth visual highlight
-            errorBanner.style.animation = 'none';
-            errorBanner.offsetHeight; /* trigger reflow */
-            errorBanner.style.animation = 'fadeIn 0.3s ease-in-out';
-        }
-    </script>
+    
 </body>
 </html>
